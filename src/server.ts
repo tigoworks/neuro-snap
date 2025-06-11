@@ -1,5 +1,5 @@
 import { config as dotenvConfig } from 'dotenv';
-import express from 'express';
+import app from './app';
 import appConfig from './config';
 import { SupabaseService } from './services/supabase.service';
 import logger from './utils/logger';
@@ -7,11 +7,7 @@ import logger from './utils/logger';
 // 加载 .env.local 文件
 dotenvConfig({ path: '.env.local' });
 
-const app = express();
 const port = appConfig.port;
-const server = app.listen(port, () => {
-  logger.info(`Server is running on port ${port} in ${appConfig.env} environment`);
-});
 
 // 初始化 Supabase 服务
 try {
@@ -22,13 +18,9 @@ try {
   process.exit(1);
 }
 
-// 中间件
-app.use(express.json());
-
-// 路由
-app.use('/api/test', require('./routes/test.routes').default);
-app.use('/api/survey', require('./routes/survey.routes').default);
-app.use('/api/user', require('./routes/user.routes').default);
+const server = app.listen(port, () => {
+  logger.info(`Server is running on port ${port} in ${appConfig.env} environment`);
+});
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
