@@ -8,12 +8,12 @@ export class SurveyController {
     this.supabaseService = SupabaseService.getInstance();
   }
 
-  // 获取测试题目接口 - GET /api/survey-questions?model={type}
+  // 获取测试题目接口 - GET /api/survey/model?code={type}
   async getSurveyQuestions(req: Request, res: Response) {
     try {
-      const { model } = req.query;
+      const { code } = req.query;
 
-      if (!model) {
+      if (!code) {
         return res.status(400).json({
           error: 'Model code is required',
         });
@@ -23,7 +23,7 @@ export class SurveyController {
       const { data: modelData, error: modelError } = await this.supabaseService.getClient()
         .from('survey_model')
         .select('*')
-        .eq('code', model as string)
+        .eq('code', code as string)
         .single();
 
       if (modelError || !modelData) {
