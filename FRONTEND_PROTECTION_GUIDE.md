@@ -249,3 +249,6 @@ done
 - ✅ **监控告警**：详细的安全日志
 
 **推荐使用Standard级别**，在安全性和易用性之间取得最佳平衡！🎉 
+
+开发环境: http://localhost:8080
+生产环境: https://your-domain.com:8080 

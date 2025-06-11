@@ -11,6 +11,7 @@ import testRoutes from './routes/test.routes';
 import apiRoutes from './routes/api.routes';
 import authRoutes from './routes/auth.routes';
 import errorMiddleware from './middleware/error.middleware';
+import { requestLogger } from './middleware/request-logger.middleware';
 import config from './config';
 import logger from './utils/logger';
 
@@ -36,11 +37,11 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Request logging
-app.use((req, res, next) => {
-  logger.info(`${req.method} ${req.path}`);
-  next();
-});
+// 添加压缩中间件
+app.use(compression());
+
+// Enhanced request logging middleware
+app.use(requestLogger.logRequest);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -70,6 +71,7 @@ app.use('/api/test', testRoutes);
 
 // Error handling
 app.use(errorMiddleware.notFoundHandler);
+app.use(requestLogger.logError); // 错误日志记录
 app.use(errorMiddleware.errorHandler);
 
 export default app; 

@@ -10,7 +10,13 @@
     "lint": "eslint . --ext .ts",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "logs": "node scripts/view-logs.js",
+    "logs:stats": "node scripts/log-stats.js",
+    "logs:api": "node scripts/view-logs.js --api --details",
+    "logs:db": "node scripts/view-logs.js --db --details",
+    "logs:errors": "node scripts/view-logs.js --error",
+    "logs:clear": "rm -f logs/*.log && echo 'Logs cleared successfully'"
   },
   "keywords": [],
   "author": "",
