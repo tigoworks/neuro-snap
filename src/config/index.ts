@@ -46,7 +46,7 @@ const config: AppConfig = {
   env: (process.env.NODE_ENV as AppConfig['env']) || 'development',
   port: parseInt(process.env.PORT || '8080', 10), // 默认端口改为8080
   rate_limit: parseInt(process.env.RATE_LIMIT || '100', 10),
-  cors_origin: process.env.CORS_ORIGIN || '*',
+  cors_origin: process.env.CORS_ORIGIN || ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001'],
   auth: {
     jwt_secret: process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production',
     api_key: process.env.API_KEY || 'your-api-key-change-in-production',

@@ -20,8 +20,16 @@ const app = express();
 app.use(helmet());
 app.use(cors({
   origin: config.cors_origin,
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type', 
+    'Authorization', 
+    'X-Frontend-Key',
+    'X-Requested-With',
+    'Accept',
+    'Origin'
+  ],
+  credentials: true
 }));
 
 // Body parsing middleware
@@ -32,6 +40,17 @@ app.use(express.urlencoded({ extended: true }));
 app.use((req, res, next) => {
   logger.info(`${req.method} ${req.path}`);
   next();
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: config.env,
+    version: '1.0.0'
+  });
 });
 
 // Routes
