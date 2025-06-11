@@ -1,0 +1,17 @@
+import '@jest/globals';
+import { config } from 'dotenv';
+import { supabase } from '../lib/supabase';
+
+// 加载测试环境变量
+config({ path: '.env.local' });
+
+// 全局测试设置
+beforeAll(async () => {
+  // 可以在这里添加测试前的准备工作
+  console.log('Setting up test environment...');
+});
+
+afterAll(async () => {
+  // 可以在这里添加测试后的清理工作
+  console.log('Cleaning up test environment...');
+}); 
