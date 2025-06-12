@@ -1,9 +1,8 @@
 import dotenv from 'dotenv';
 import path from 'path';
 
-// 加载环境变量，支持 .env.local 文件
-dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
-dotenv.config(); // 也加载默认的 .env 文件作为备选
+// 加载环境变量，优先读取 .env 文件
+dotenv.config(); // 加载默认的 .env 文件
 
 interface AppConfig {
   env: 'development' | 'production' | 'test';

@@ -565,11 +565,292 @@ function validateCompleteData(data: any): boolean {
 
 ---
 
+## 8. AI分析与知识库系统 🤖
+
+### 8.1 生成AI分析报告
+
+**接口地址**: `POST /api/analysis/generate`
+
+**功能描述**: 基于用户测评数据和知识库内容，使用OpenAI生成详细的心理测评分析报告
+
+#### 请求体
+```json
+{
+  "userId": "string",              // 必填，用户ID
+  "userAnswers": {                 // 必填，完整的测评答案
+    "userInfo": { /* 用户信息 */ },
+    "fiveQuestions": { /* 五问法答案 */ },
+    "mbti": { /* MBTI答案 */ },
+    "bigFive": { /* 大五人格答案 */ },
+    "disc": { /* DISC答案 */ },
+    "holland": { /* 霍兰德答案 */ },
+    "values": { /* 价值观答案 */ }
+  },
+  "analysisType": "comprehensive", // 可选，分析类型
+  "language": "zh"                 // 可选，语言
+}
+```
+
+#### 成功响应
+```json
+{
+  "success": true,
+  "data": {
+    "analysisId": "analysis_1701234567890_abc123",
+    "report": {
+      "summary": {
+        "title": "个人特质深度分析报告",
+        "overview": "基于您的测评结果，您展现出...",
+        "keyInsights": ["洞察1", "洞察2", "洞察3"],
+        "strengthsAndWeaknesses": {
+          "strengths": ["优势1", "优势2"],
+          "weaknesses": ["待改进1", "待改进2"],
+          "improvementAreas": ["发展方向1", "发展方向2"]
+        }
+      },
+      "personalityProfile": {
+        "mbtiType": "INFP",
+        "mbtiDescription": "理想主义者，富有创造力...",
+        "bigFiveScores": {
+          "openness": 85,
+          "conscientiousness": 70,
+          "extraversion": 30,
+          "agreeableness": 80,
+          "neuroticism": 45
+        },
+        "discProfile": {
+          "dominance": 20,
+          "influence": 40,
+          "steadiness": 75,
+          "conscientiousness": 65,
+          "primaryStyle": "Steady"
+        },
+        "hollandCode": {
+          "realistic": 25,
+          "investigative": 85,
+          "artistic": 75,
+          "social": 70,
+          "enterprising": 35,
+          "conventional": 40,
+          "topThree": ["Investigative", "Artistic", "Social"]
+        }
+      },
+      "careerGuidance": {
+        "idealCareers": [
+          {
+            "title": "数据科学家",
+            "match": 92,
+            "description": "运用统计学和机器学习分析大数据",
+            "requirements": ["Python", "统计学", "机器学习"],
+            "growthPotential": "数据驱动决策需求持续增长"
+          }
+        ],
+        "careerDevelopmentPlan": {
+          "shortTerm": ["学习Python编程", "掌握SQL数据库"],
+          "mediumTerm": ["获得数据分析认证", "参与实际项目"],
+          "longTerm": ["成为高级数据科学家", "建立专业影响力"]
+        },
+        "skillsToImprove": ["数据可视化", "商业理解", "沟通表达"],
+        "industryRecommendations": ["科技", "金融", "医疗", "电商"]
+      },
+      "workStyle": {
+        "preferredEnvironment": "安静、独立的工作环境",
+        "workingStyle": "深度思考型，注重质量胜过速度",
+        "communicationStyle": "倾听型，善于一对一深度交流",
+        "leadershipStyle": "教练型领导，激发他人潜能",
+        "teamRole": "专家顾问，提供深度见解",
+        "motivationFactors": ["专业成长", "创新挑战", "团队认可"]
+      },
+      "recommendations": {
+        "personalDevelopment": [
+          "培养公众演讲能力",
+          "学习项目管理技能",
+          "建立个人品牌"
+        ],
+        "learningResources": [
+          "《深度工作》- Cal Newport",
+          "Coursera机器学习课程",
+          "TED演讲技巧视频"
+        ],
+        "actionItems": [
+          "制定3个月学习计划",
+          "寻找导师或教练",
+          "加入专业社群"
+        ],
+        "nextSteps": [
+          "完善技能评估",
+          "制定职业发展路线图",
+          "开始实施学习计划"
+        ]
+      },
+      "visualizationData": {
+        "personalityChart": {
+          "type": "radar",
+          "data": { /* Chart.js格式数据 */ }
+        },
+        "careerFitChart": {
+          "type": "bar",
+          "data": { /* 职业匹配度图表 */ }
+        },
+        "hollandChart": {
+          "type": "polarArea",
+          "data": { /* 霍兰德兴趣图表 */ }
+        }
+      }
+    },
+    "metadata": {
+      "confidence": 0.87,
+      "processingTime": 12500,
+      "knowledgeSourcesUsed": 15,
+      "analysisType": "comprehensive",
+      "createdAt": "2024-06-11T14:30:00Z"
+    }
+  }
+}
+```
+
+### 8.2 预览分析（不保存）
+
+**接口地址**: `POST /api/analysis/preview`
+
+**功能描述**: 快速预览分析结果，不保存到数据库
+
+```json
+{
+  "userAnswers": { /* 测评数据 */ },
+  "analysisType": "personality",
+  "language": "zh"
+}
+```
+
+### 8.3 知识库管理
+
+#### 搜索知识库
+**接口地址**: `GET /api/analysis/knowledge/search`
+
+**查询参数**:
+- `query` - 搜索关键词（必填）
+- `category` - 分类筛选（psychology, career, personality等）
+- `tags` - 标签筛选（逗号分隔）
+- `limit` - 结果数量（默认10）
+
+**示例**: `/api/analysis/knowledge/search?query=MBTI&category=psychology&limit=5`
+
+#### 导入文件到知识库
+**接口地址**: `POST /api/analysis/knowledge/import/file`
+
+```json
+{
+  "filePath": "./docs/psychology-handbook.md",
+  "category": "psychology",
+  "tags": ["handbook", "reference", "mbti"]
+}
+```
+
+#### 从URL导入内容
+**接口地址**: `POST /api/analysis/knowledge/import/url`
+
+```json
+{
+  "url": "https://www.psychologytoday.com/intl/basics/big-5-personality-traits",
+  "category": "research",
+  "tags": ["big5", "research", "web"]
+}
+```
+
+#### 获取知识库统计
+**接口地址**: `GET /api/analysis/knowledge/stats`
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": {
+    "totalSources": 8,
+    "totalEntries": 42,
+    "categories": ["psychology", "career", "personality"],
+    "lastUpdated": "2024-06-11T14:30:00Z"
+  }
+}
+```
+
+### 8.4 分析历史管理
+
+#### 获取用户分析历史
+**接口地址**: `GET /api/analysis/user/:userId/history`
+
+#### 删除分析记录
+**接口地址**: `DELETE /api/analysis/:analysisId`
+
+---
+
+## 9. 前端可视化集成
+
+生成的`visualizationData`可以直接用于前端图表库（如Chart.js、ECharts等）：
+
+```javascript
+// 使用Chart.js渲染人格雷达图
+function renderPersonalityChart(chartData) {
+  const ctx = document.getElementById('personalityChart').getContext('2d');
+  new Chart(ctx, chartData.personalityChart);
+}
+
+// 使用ECharts渲染职业匹配图
+function renderCareerChart(chartData) {
+  const chart = echarts.init(document.getElementById('careerChart'));
+  chart.setOption({
+    title: { text: '职业匹配度分析' },
+    ...chartData.careerFitChart
+  });
+}
+```
+
+---
+
+## 10. 知识库初始化
+
+### 快速开始
+
+```bash
+# 1. 初始化知识库
+npm run knowledge:init
+
+# 2. 查看知识库状态
+npm run knowledge:stats
+
+# 3. 启动服务器
+npm start
+```
+
+### 环境配置
+
+需要在`.env.local`中配置：
+
+```env
+# OpenAI配置（必需）
+OPENAI_API_KEY=your_openai_api_key
+OPENAI_BASE_URL=https://api.openai.com/v1
+OPENAI_MODEL=gpt-4o-mini
+
+# 知识库配置
+KNOWLEDGE_BASE_PATH=./knowledge-base
+ENABLE_WEB_SCRAPING=true
+```
+
+---
+
 ## 更新日志
 
-- **v1.0.0** - 初始版本，支持用户信息管理和答案提交
-- **v1.1.0** - 增强数据验证和错误处理，添加详细的缺失字段信息
+- **v2.0.0** - 🚀 重大更新：AI分析系统上线
+  - 集成OpenAI GPT-4o-mini模型
+  - MCP知识库服务支持文件/URL导入
+  - 生成详细的心理测评分析报告
+  - 可视化数据支持多种图表类型
+  - 智能职业推荐和发展规划
+
 - **v1.2.0** - 添加输入参数日志记录，优化调试体验
+- **v1.1.0** - 增强数据验证和错误处理，添加详细的缺失字段信息  
+- **v1.0.0** - 初始版本，支持用户信息管理和答案提交
 
 ---
 

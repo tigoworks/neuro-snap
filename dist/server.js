@@ -8,8 +8,8 @@ const app_1 = __importDefault(require("./app"));
 const config_1 = __importDefault(require("./config"));
 const supabase_service_1 = require("./services/supabase.service");
 const logger_1 = __importDefault(require("./utils/logger"));
-// 加载 .env.local 文件
-(0, dotenv_1.config)({ path: '.env.local' });
+// 加载 .env 文件
+(0, dotenv_1.config)();
 const port = config_1.default.port;
 // 初始化 Supabase 服务
 try {

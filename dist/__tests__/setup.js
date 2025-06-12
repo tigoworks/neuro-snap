@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 require("@jest/globals");
 const dotenv_1 = require("dotenv");
 // 加载测试环境变量
-(0, dotenv_1.config)({ path: '.env.local' });
+(0, dotenv_1.config)(); // 加载默认的 .env 文件
 // 全局测试设置
 beforeAll(async () => {
     // 可以在这里添加测试前的准备工作

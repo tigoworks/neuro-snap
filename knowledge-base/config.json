@@ -1,0 +1,22 @@
+{
+  "version": "1.0.0",
+  "initialized": "2025-06-11T15:34:37.932Z",
+  "categories": [
+    "psychology",
+    "career",
+    "personality",
+    "assessment",
+    "general"
+  ],
+  "maxEntries": 1000,
+  "allowedFileTypes": [
+    ".md",
+    ".txt",
+    ".pdf",
+    ".doc",
+    ".docx",
+    ".json"
+  ],
+  "webScrapingEnabled": true,
+  "autoTagging": true
+}

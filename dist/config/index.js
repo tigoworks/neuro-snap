@@ -4,10 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv_1 = __importDefault(require("dotenv"));
-const path_1 = __importDefault(require("path"));
-// 加载环境变量，支持 .env.local 文件
-dotenv_1.default.config({ path: path_1.default.resolve(process.cwd(), '.env.local') });
-dotenv_1.default.config(); // 也加载默认的 .env 文件作为备选
+// 加载环境变量，优先读取 .env 文件
+dotenv_1.default.config(); // 加载默认的 .env 文件
 const config = {
     env: process.env.NODE_ENV || 'development',
     port: parseInt(process.env.PORT || '8080', 10), // 默认端口改为8080

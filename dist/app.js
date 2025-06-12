@@ -7,7 +7,8 @@ const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
 const compression_1 = __importDefault(require("compression"));
-const analysis_routes_1 = __importDefault(require("./routes/analysis.routes"));
+// import analysisRoutes from './routes/analysis.routes';
+const simple_analysis_routes_1 = __importDefault(require("./routes/simple-analysis.routes"));
 const user_routes_1 = __importDefault(require("./routes/user.routes"));
 const survey_routes_1 = __importDefault(require("./routes/survey.routes"));
 const answer_routes_1 = __importDefault(require("./routes/answer.routes"));
@@ -15,6 +16,7 @@ const config_routes_1 = __importDefault(require("./routes/config.routes"));
 const test_routes_1 = __importDefault(require("./routes/test.routes"));
 const api_routes_1 = __importDefault(require("./routes/api.routes"));
 const auth_routes_1 = __importDefault(require("./routes/auth.routes"));
+const knowledge_routes_1 = __importDefault(require("./routes/knowledge.routes"));
 const error_middleware_1 = __importDefault(require("./middleware/error.middleware"));
 const request_logger_middleware_1 = require("./middleware/request-logger.middleware");
 const config_1 = __importDefault(require("./config"));
@@ -57,7 +59,9 @@ app.use('/api/auth', auth_routes_1.default);
 // Frontend-compatible API routes (priority)
 app.use('/api', api_routes_1.default);
 // Original backend routes (for backward compatibility)
-app.use('/api/analyze', analysis_routes_1.default);
+// app.use('/api/analyze', analysisRoutes);  // 暂时注释掉有问题的AI分析路由
+app.use('/api/analysis', simple_analysis_routes_1.default); // 新的基础分析系统
+app.use('/api/knowledge', knowledge_routes_1.default); // 知识库管理系统
 app.use('/api/user', user_routes_1.default);
 app.use('/api/survey', survey_routes_1.default);
 app.use('/api/answer', answer_routes_1.default);

@@ -3,7 +3,7 @@ import { config } from 'dotenv';
 import { supabase } from '../lib/supabase';
 
 // 加载测试环境变量
-config({ path: '.env.local' });
+config(); // 加载默认的 .env 文件
 
 // 全局测试设置
 beforeAll(async () => {

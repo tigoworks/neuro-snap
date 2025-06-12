@@ -16,7 +16,10 @@
     "logs:api": "node scripts/view-logs.js --api --details",
     "logs:db": "node scripts/view-logs.js --db --details",
     "logs:errors": "node scripts/view-logs.js --error",
-    "logs:clear": "rm -f logs/*.log && echo 'Logs cleared successfully'"
+    "logs:clear": "rm -f logs/*.log && echo 'Logs cleared successfully'",
+    "knowledge:init": "node scripts/init-knowledge-base.js",
+    "knowledge:stats": "curl -H 'X-Frontend-Key: your-unique-frontend-app-key-2024' http://localhost:8080/api/analysis/knowledge/stats | jq",
+    "analysis:preview": "curl -X POST -H 'Content-Type: application/json' -H 'X-Frontend-Key: your-unique-frontend-app-key-2024' http://localhost:8080/api/analysis/preview"
   },
   "keywords": [],
   "author": "",
@@ -32,8 +35,10 @@
     "express": "^4.18.2",
     "express-rate-limit": "^7.1.5",
     "helmet": "^7.1.0",
+    "https-proxy-agent": "^7.0.6",
     "jsonwebtoken": "^9.0.2",
     "openai": "^4.26.0",
+    "socks-proxy-agent": "^8.0.5",
     "winston": "^3.11.0",
     "zod": "^3.22.4"
   },

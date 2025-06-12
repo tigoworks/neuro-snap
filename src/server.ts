@@ -4,8 +4,8 @@ import appConfig from './config';
 import { SupabaseService } from './services/supabase.service';
 import logger from './utils/logger';
 
-// 加载 .env.local 文件
-dotenvConfig({ path: '.env.local' });
+// 加载 .env 文件
+dotenvConfig();
 
 const port = appConfig.port;
 
