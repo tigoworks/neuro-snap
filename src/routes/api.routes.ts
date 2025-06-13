@@ -1,27 +1,22 @@
 import { Router } from 'express';
 import { SurveyController } from '../controllers/survey.controller';
 import { TestController } from '../controllers/test.controller';
+import { AnswerController } from '../controllers/answer.controller';
 import authMiddleware from '../middleware/auth.middleware';
 import appProtection from '../middleware/app-protection.middleware';
-import { rateLimit } from 'express-rate-limit';
+import SmartRateLimitMiddleware from '../middleware/smart-rate-limit.middleware';
 import config from '../config';
 
 const router = Router();
 const surveyController = new SurveyController();
 const testController = new TestController();
-
-// 基础速率限制 - 作为最后防线
-const baseLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: config.rate_limit,
-  message: 'Too many requests from this IP, please try again later.',
-});
+const answerController = new AnswerController();
 
 // 应用前端保护中间件
 const frontendProtection = appProtection.createProtection('standard');
 
 // 将数组中间件展开应用
-router.use(baseLimiter);
+router.use(SmartRateLimitMiddleware.basicProtection);
 router.use(...frontendProtection);
 
 // API routes matching frontend specifications
@@ -31,6 +26,7 @@ router.get('/survey-questions', authMiddleware.optionalAuth, (req, res) => surve
 
 // 提交测试结果接口 - POST /api/submit-test
 // 使用可选鉴权：匿名用户也可以提交，但已登录用户会关联到账户
-router.post('/submit-test', authMiddleware.optionalAuth, (req, res) => testController.submitTest(req, res));
+// 使用新的答案控制器，支持AI增强分析
+router.post('/submit-test', authMiddleware.optionalAuth, (req, res) => answerController.submitAnswers(req, res));
 
 export default router; 

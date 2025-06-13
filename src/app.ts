@@ -4,6 +4,8 @@ import helmet from 'helmet';
 import compression from 'compression';
 // import analysisRoutes from './routes/analysis.routes';
 import simpleAnalysisRoutes from './routes/simple-analysis.routes';
+import analysisResultRoutes from './routes/analysis-result.routes';
+import aiStatusRoutes from './routes/ai-status.routes';
 import userRoutes from './routes/user.routes';
 import surveyRoutes from './routes/survey.routes';
 import answerRoutes from './routes/answer.routes';
@@ -66,6 +68,8 @@ app.use('/api', apiRoutes);
 // Original backend routes (for backward compatibility)
 // app.use('/api/analyze', analysisRoutes);  // 暂时注释掉有问题的AI分析路由
 app.use('/api/analysis', simpleAnalysisRoutes); // 新的基础分析系统
+app.use('/api/analysis-result', analysisResultRoutes); // 分析结果查询系统
+app.use('/api/ai', aiStatusRoutes); // AI服务状态检查
 app.use('/api/knowledge', knowledgeRoutes); // 知识库管理系统
 app.use('/api/user', userRoutes);
 app.use('/api/survey', surveyRoutes);

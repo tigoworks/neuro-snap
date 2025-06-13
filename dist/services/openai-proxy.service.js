@@ -7,6 +7,7 @@ exports.OpenAIProxyService = void 0;
 const axios_1 = __importDefault(require("axios"));
 const socks_proxy_agent_1 = require("socks-proxy-agent");
 const database_logger_service_1 = require("./database-logger.service");
+const crypto_1 = __importDefault(require("crypto"));
 class OpenAIProxyService {
     constructor(config) {
         this.logger = database_logger_service_1.DatabaseLoggerService.getInstance();
@@ -66,7 +67,7 @@ class OpenAIProxyService {
      */
     async performAnalysis(request) {
         const startTime = Date.now();
-        const analysisId = `ai_analysis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const analysisId = crypto_1.default.randomUUID();
         try {
             console.log(`🤖 开始 AI 分析: ${request.userId}`);
             // 构建分析提示

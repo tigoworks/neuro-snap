@@ -164,12 +164,117 @@ class NeuroSnapAPI {
   }
 
   /**
+   * 获取分析结果（新接口）
+   * @param {string} userId - 用户ID
+   */
+  async getAnalysisResult(userId) {
+    return this.request(`/api/analysis-result/user/${userId}`);
+  }
+
+  /**
+   * 智能轮询分析结果（优化版）
+   * @param {string} userId - 用户ID
+   * @param {number} maxAttempts - 最大尝试次数，默认20次
+   * @param {number} initialInterval - 初始轮询间隔（毫秒），默认3秒
+   */
+  async pollAnalysisResult(userId, maxAttempts = 20, initialInterval = 3000) {
+    console.log(`🔍 开始轮询分析结果 (后端已优化速率限制)`);
+    console.log(`📊 配置: 最多${maxAttempts}次尝试，初始间隔${initialInterval / 1000}秒`);
+    console.log(`🎯 后端查询限制: 15分钟内300次请求，完全支持轮询`);
+    console.log('='.repeat(60));
+    
+    this.startTime = Date.now();
+    
+    for (let i = 0; i < maxAttempts; i++) {
+      try {
+        console.log(`\n🔄 第${i + 1}/${maxAttempts}次轮询...`);
+        const response = await this.getAnalysisResult(userId);
+        
+        if (response.success && response.data.status === 'completed') {
+          const totalTime = Math.round((Date.now() - this.startTime) / 60000 * 10) / 10;
+          console.log(`✅ 分析完成！总用时: ${totalTime}分钟`);
+          return response.data.analysis;
+        } else if (response.data.status === 'processing') {
+          console.log(`⏳ ${response.data.message} (预计还需${response.data.estimatedCompletion})`);
+        } else if (response.data.status === 'not_found') {
+          console.log(`⏳ 分析进行中... (状态: ${response.data.status})`);
+        } else {
+          console.log(`📊 分析状态: ${response.data.status}`);
+        }
+        
+        // 优化的轮询策略：由于后端已经放宽限制，可以更频繁地轮询
+        // 前5次：3秒间隔（快速检查）
+        // 6-15次：5秒间隔（常规检查）
+        // 16-20次：8秒间隔（耐心等待）
+        let currentInterval;
+        if (i < 5) {
+          currentInterval = initialInterval; // 3秒
+        } else if (i < 15) {
+          currentInterval = 5000; // 5秒
+        } else {
+          currentInterval = 8000; // 8秒
+        }
+        
+        // 计算已用时间和剩余时间
+        const elapsedMinutes = Math.round((Date.now() - this.startTime) / 60000 * 10) / 10;
+        const remainingAttempts = maxAttempts - i - 1;
+        
+        console.log(`⏰ ${Math.round(currentInterval / 1000)}秒后进行下次检查...`);
+        console.log(`📈 已用时: ${elapsedMinutes}分钟，剩余: ${remainingAttempts}次尝试`);
+        
+        if (remainingAttempts > 0) {
+          await new Promise(resolve => setTimeout(resolve, currentInterval));
+        }
+        
+      } catch (error) {
+        const elapsedMinutes = Math.round((Date.now() - this.startTime) / 60000 * 10) / 10;
+        
+        // 处理速率限制错误（现在应该很少发生）
+        if (error.message.includes('429') || error.message.includes('请求过于频繁')) {
+          console.warn(`❌ 轮询第${i + 1}次遇到速率限制: ${error.message}`);
+          
+          // 检查是否是查询限制（300次/15分钟）
+          if (error.message.includes('QUERY_RATE_LIMIT_EXCEEDED')) {
+            const retryAfter = 60000; // 等待60秒
+            console.log(`⏰ 查询限制触发，等待${retryAfter / 1000}秒后重试...`);
+            if (i < maxAttempts - 1) {
+              await new Promise(resolve => setTimeout(resolve, retryAfter));
+              continue;
+            }
+          } else {
+            // 其他类型的速率限制
+            const retryAfter = 30000; // 等待30秒
+            console.log(`⏰ 速率限制触发，等待${retryAfter / 1000}秒后重试...`);
+            if (i < maxAttempts - 1) {
+              await new Promise(resolve => setTimeout(resolve, retryAfter));
+              continue;
+            }
+          }
+        }
+        
+        if (i === maxAttempts - 1) {
+          throw error;
+        }
+        
+        // 其他错误增加等待时间
+        const errorInterval = Math.min(10000 + (i * 2000), 30000);
+        console.warn(`⚠️ 轮询第${i + 1}次出错，${errorInterval / 1000}秒后重试: ${error.message}`);
+        console.log(`📈 已用时: ${elapsedMinutes}分钟`);
+        await new Promise(resolve => setTimeout(resolve, errorInterval));
+      }
+    }
+    
+    const totalTime = Math.round((Date.now() - this.startTime) / 60000 * 10) / 10;
+    throw new Error(`分析结果获取超时 (已等待${totalTime}分钟)，请稍后手动查看结果`);
+  }
+
+  /**
    * 轮询等待分析完成
    * @param {string} surveyId - 调查ID
-   * @param {number} maxAttempts - 最大尝试次数，默认30次
-   * @param {number} interval - 轮询间隔（毫秒），默认2秒
+   * @param {number} maxAttempts - 最大尝试次数，默认20次
+   * @param {number} initialInterval - 初始轮询间隔（毫秒），默认3秒
    */
-  async waitForAnalysis(surveyId, maxAttempts = 30, interval = 2000) {
+  async waitForAnalysis(surveyId, maxAttempts = 20, initialInterval = 3000) {
     for (let i = 0; i < maxAttempts; i++) {
       try {
         const status = await this.getAnalysisStatus(surveyId);
@@ -180,13 +285,36 @@ class NeuroSnapAPI {
           throw new Error(status.error || '分析过程中发生错误');
         }
         
-        // 等待指定间隔后再次检查
-        await new Promise(resolve => setTimeout(resolve, interval));
+        // 使用指数退避算法：每次间隔时间递增
+        // 第1次: 3秒, 第2次: 4.5秒, 第3次: 6.75秒, 第4次: 10秒, 之后固定15秒
+        const currentInterval = Math.min(
+          initialInterval * Math.pow(1.5, i),
+          15000 // 最大间隔15秒
+        );
+        
+        console.log(`⏳ 轮询第${i + 1}次，${Math.round(currentInterval / 1000)}秒后重试...`);
+        await new Promise(resolve => setTimeout(resolve, currentInterval));
       } catch (error) {
+        // 如果是速率限制错误，增加等待时间
+        if (error.message.includes('429') || error.message.includes('请求过于频繁')) {
+          const retryAfter = 30000; // 等待30秒
+          console.warn(`❌ 轮询第${i + 1}次失败: ${error.message}`);
+          
+          if (i < maxAttempts - 1) {
+            console.log(`⏰ 遇到速率限制，等待${retryAfter / 1000}秒后重试...`);
+            await new Promise(resolve => setTimeout(resolve, retryAfter));
+            continue;
+          }
+        }
+        
         if (i === maxAttempts - 1) {
           throw error;
         }
-        // 继续尝试
+        
+        // 其他错误也增加等待时间
+        const errorInterval = Math.min(5000 * (i + 1), 30000);
+        console.warn(`⚠️ 轮询第${i + 1}次出错，${errorInterval / 1000}秒后重试: ${error.message}`);
+        await new Promise(resolve => setTimeout(resolve, errorInterval));
       }
     }
     

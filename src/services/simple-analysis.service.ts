@@ -1,4 +1,5 @@
 import { DatabaseLoggerService } from './database-logger.service';
+import crypto from 'crypto';
 
 export interface SimpleAnalysisRequest {
   userId: string;
@@ -32,7 +33,7 @@ export class SimpleAnalysisService {
    */
   async performAnalysis(request: SimpleAnalysisRequest): Promise<SimpleAnalysisResult> {
     const startTime = Date.now();
-    const analysisId = `analysis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const analysisId = crypto.randomUUID();
     
     try {
       console.log(`📊 开始基础分析: ${request.userId}`);

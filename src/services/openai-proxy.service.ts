@@ -1,6 +1,7 @@
 import axios, { AxiosInstance } from 'axios';
 import { SocksProxyAgent } from 'socks-proxy-agent';
 import { DatabaseLoggerService } from './database-logger.service';
+import crypto from 'crypto';
 
 export interface OpenAIProxyConfig {
   apiKey: string;
@@ -109,7 +110,7 @@ export class OpenAIProxyService {
    */
   async performAnalysis(request: OpenAIAnalysisRequest): Promise<OpenAIAnalysisResult> {
     const startTime = Date.now();
-    const analysisId = `ai_analysis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const analysisId = crypto.randomUUID();
 
     try {
       console.log(`🤖 开始 AI 分析: ${request.userId}`);

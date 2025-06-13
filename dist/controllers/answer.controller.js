@@ -6,12 +6,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AnswerController = void 0;
 const supabase_service_1 = require("../services/supabase.service");
 const database_logger_service_1 = require("../services/database-logger.service");
+const ai_enhanced_analysis_service_1 = require("../services/ai-enhanced-analysis.service");
 const logger_1 = __importDefault(require("../utils/logger"));
 class AnswerController {
     constructor() {
         this.supabaseService = supabase_service_1.SupabaseService.getInstance();
+        this.aiAnalysisService = new ai_enhanced_analysis_service_1.AIEnhancedAnalysisService();
     }
-    // 提交答案 - 带事务控制
+    // 提交答案 - 带事务控制和自动分析
     async submitAnswers(req, res) {
         const transactionId = database_logger_service_1.databaseLogger.logTransaction('start');
         const startTime = Date.now();
@@ -200,25 +202,11 @@ class AnswerController {
                     }
                 }
             });
-            // 1. 保存用户基本信息
+            // 1. 保存用户基础信息
             const userQueryId = database_logger_service_1.databaseLogger.logQueryStart({
                 table: 'user_survey',
                 operation: 'INSERT',
-                data: data.userInfo,
-                inputParams: {
-                    transactionId,
-                    step: '1_save_user_info',
-                    originalUserInfo: data.userInfo,
-                    processedUserInfo: {
-                        name: data.userInfo.name,
-                        gender: data.userInfo.gender,
-                        age: data.userInfo.age,
-                        city: data.userInfo.city,
-                        occupation: data.userInfo.occupation,
-                        education: data.userInfo.education,
-                        phone: data.userInfo.phone,
-                    }
-                }
+                data: data.userInfo
             });
             const { data: userData, error: userError } = await client
                 .from('user_survey')
@@ -229,30 +217,23 @@ class AnswerController {
                 city: data.userInfo.city,
                 occupation: data.userInfo.occupation,
                 education: data.userInfo.education,
-                phone: data.userInfo.phone,
+                phone: data.userInfo.phone || null
             })
                 .select()
                 .single();
             if (userError || !userData) {
-                database_logger_service_1.databaseLogger.logQueryError(userQueryId, userError, startTime, {
+                database_logger_service_1.databaseLogger.logQueryError(userQueryId, userError, Date.now(), {
                     table: 'user_survey',
                     operation: 'INSERT'
                 });
                 database_logger_service_1.databaseLogger.logTransaction('rollback', transactionId);
-                throw new Error(`用户信息保存失败: ${userError?.message}`);
+                throw new Error(`保存用户信息失败: ${userError?.message}`);
             }
             database_logger_service_1.databaseLogger.logQuerySuccess(userQueryId, userData, Date.now(), {
                 table: 'user_survey',
-                operation: 'INSERT',
-                inputParams: {
-                    transactionId,
-                    step: '1_save_user_info',
-                    insertedUserId: userData.id,
-                    insertedUserName: userData.name
-                }
+                operation: 'INSERT'
             });
             const userId = userData.id;
-            logger_1.default.info('✅ 用户信息保存成功', { userId, transactionId });
             // 2. 获取所有模型信息
             const modelsQueryId = database_logger_service_1.databaseLogger.logQueryStart({
                 table: 'survey_model',
@@ -260,8 +241,7 @@ class AnswerController {
             });
             const { data: modelsData, error: modelsError } = await client
                 .from('survey_model')
-                .select('*')
-                .in('code', ['fiveq', 'mbti', 'big5', 'disc', 'holland', 'motivation']);
+                .select('*');
             if (modelsError || !modelsData) {
                 database_logger_service_1.databaseLogger.logQueryError(modelsQueryId, modelsError, Date.now(), {
                     table: 'survey_model',
@@ -337,50 +317,82 @@ class AnswerController {
                 totalAnswers: answers.length,
                 byType: answerStats
             });
-            // 5. 批量保存答案 - 使用事务
-            if (answers.length > 0) {
-                const answersQueryId = database_logger_service_1.databaseLogger.logQueryStart({
+            // 5. 批量保存答案
+            const answersQueryId = database_logger_service_1.databaseLogger.logQueryStart({
+                table: 'user_survey_answer',
+                operation: 'INSERT',
+                data: { count: answers.length }
+            });
+            const { data: answersData, error: answersError } = await client
+                .from('user_survey_answer')
+                .insert(answers)
+                .select();
+            if (answersError || !answersData) {
+                database_logger_service_1.databaseLogger.logQueryError(answersQueryId, answersError, Date.now(), {
                     table: 'user_survey_answer',
-                    operation: 'INSERT_BATCH',
-                    data: { count: answers.length }
+                    operation: 'INSERT'
                 });
-                const { data: answersData, error: answersError } = await client
-                    .from('user_survey_answer')
-                    .insert(answers)
-                    .select();
-                if (answersError) {
-                    database_logger_service_1.databaseLogger.logQueryError(answersQueryId, answersError, Date.now(), {
-                        table: 'user_survey_answer',
-                        operation: 'INSERT_BATCH'
-                    });
-                    database_logger_service_1.databaseLogger.logTransaction('rollback', transactionId);
-                    // 尝试删除已保存的用户信息（回滚）
-                    await client.from('user_survey').delete().eq('id', userId);
-                    throw new Error(`答案保存失败: ${answersError.message}`);
-                }
-                database_logger_service_1.databaseLogger.logQuerySuccess(answersQueryId, answersData, Date.now(), {
-                    table: 'user_survey_answer',
-                    operation: 'INSERT_BATCH'
-                });
+                database_logger_service_1.databaseLogger.logTransaction('rollback', transactionId);
+                throw new Error(`保存答案失败: ${answersError?.message}`);
             }
-            // 事务完成
+            database_logger_service_1.databaseLogger.logQuerySuccess(answersQueryId, answersData, Date.now(), {
+                table: 'user_survey_answer',
+                operation: 'INSERT'
+            });
+            // 6. 提交事务
             database_logger_service_1.databaseLogger.logTransaction('commit', transactionId);
             const duration = Date.now() - startTime;
-            logger_1.default.info('🎉 答案提交事务完成', {
+            logger_1.default.info('✅ 答案提交事务成功', {
                 transactionId,
                 userId,
                 totalAnswers: answers.length,
-                duration: `${duration}ms`,
-                success: true
+                duration: `${duration}ms`
+            });
+            // 7. 🚀 自动触发分析（异步执行，不阻塞响应）
+            const analysisRequest = {
+                userId,
+                userInfo: data.userInfo,
+                answers: {
+                    fiveQuestions: data.fiveQuestions,
+                    mbti: data.mbti,
+                    bigFive: data.bigFive,
+                    disc: data.disc,
+                    holland: data.holland,
+                    values: data.values
+                }
+            };
+            // 异步执行AI增强分析，不等待结果
+            this.aiAnalysisService.triggerAnalysisAfterSubmission(analysisRequest)
+                .then((analysisResult) => {
+                logger_1.default.info('🎯 AI增强分析已完成', {
+                    userId,
+                    analysisId: analysisResult.id,
+                    confidenceScore: analysisResult.confidence_score,
+                    processingTime: analysisResult.processing_time_ms,
+                    analysisMethod: analysisResult.analysis_method || 'AI-enhanced'
+                });
+            })
+                .catch((error) => {
+                logger_1.default.error('⚠️ AI增强分析失败（不影响答案提交）', {
+                    userId,
+                    error: {
+                        name: error instanceof Error ? error.name : 'Unknown',
+                        message: error instanceof Error ? error.message : String(error)
+                    }
+                });
             });
             // 返回成功响应
             res.json({
-                message: '测试结果保存成功',
+                message: '测试结果保存成功，分析正在后台进行',
                 surveyId: userId,
                 stats: {
                     totalAnswers: answers.length,
                     answersByType: answerStats,
                     duration: `${duration}ms`
+                },
+                analysis: {
+                    status: 'processing',
+                    message: '分析报告正在生成中，请稍后查看结果'
                 }
             });
         }

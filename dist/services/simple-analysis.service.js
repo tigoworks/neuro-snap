@@ -1,7 +1,11 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SimpleAnalysisService = void 0;
 const database_logger_service_1 = require("./database-logger.service");
+const crypto_1 = __importDefault(require("crypto"));
 class SimpleAnalysisService {
     constructor() {
         this.logger = database_logger_service_1.DatabaseLoggerService.getInstance();
@@ -11,7 +15,7 @@ class SimpleAnalysisService {
      */
     async performAnalysis(request) {
         const startTime = Date.now();
-        const analysisId = `analysis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const analysisId = crypto_1.default.randomUUID();
         try {
             console.log(`📊 开始基础分析: ${request.userId}`);
             // 分析用户信息

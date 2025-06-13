@@ -57,7 +57,7 @@ const config: AppConfig = {
     signature_secret: process.env.SIGNATURE_SECRET || 'your-signature-secret-change-in-production',
     signature_window: parseInt(process.env.SIGNATURE_WINDOW || '300000', 10), // 5分钟
     rate_limit_window: parseInt(process.env.RATE_LIMIT_WINDOW || '900000', 10), // 15分钟
-    rate_limit_max: parseInt(process.env.RATE_LIMIT_MAX || '50', 10), // 每15分钟50次请求
+    rate_limit_max: parseInt(process.env.RATE_LIMIT_MAX || '200', 10), // 每15分钟200次请求（大幅提高）
   },
   supabase: {
     url: process.env.SUPABASE_URL || '',

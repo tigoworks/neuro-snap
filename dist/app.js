@@ -9,6 +9,8 @@ const helmet_1 = __importDefault(require("helmet"));
 const compression_1 = __importDefault(require("compression"));
 // import analysisRoutes from './routes/analysis.routes';
 const simple_analysis_routes_1 = __importDefault(require("./routes/simple-analysis.routes"));
+const analysis_result_routes_1 = __importDefault(require("./routes/analysis-result.routes"));
+const ai_status_routes_1 = __importDefault(require("./routes/ai-status.routes"));
 const user_routes_1 = __importDefault(require("./routes/user.routes"));
 const survey_routes_1 = __importDefault(require("./routes/survey.routes"));
 const answer_routes_1 = __importDefault(require("./routes/answer.routes"));
@@ -61,6 +63,8 @@ app.use('/api', api_routes_1.default);
 // Original backend routes (for backward compatibility)
 // app.use('/api/analyze', analysisRoutes);  // 暂时注释掉有问题的AI分析路由
 app.use('/api/analysis', simple_analysis_routes_1.default); // 新的基础分析系统
+app.use('/api/analysis-result', analysis_result_routes_1.default); // 分析结果查询系统
+app.use('/api/ai', ai_status_routes_1.default); // AI服务状态检查
 app.use('/api/knowledge', knowledge_routes_1.default); // 知识库管理系统
 app.use('/api/user', user_routes_1.default);
 app.use('/api/survey', survey_routes_1.default);
